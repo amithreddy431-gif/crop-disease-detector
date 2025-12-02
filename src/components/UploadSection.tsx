@@ -1,0 +1,214 @@
+import { useState, useCallback } from "react";
+import { Upload, Image, X, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Button } from "./ui/button";
+
+const UploadSection = () => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [result, setResult] = useState<{
+    disease: string;
+    confidence: number;
+    severity: string;
+    treatment: string;
+  } | null>(null);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) {
+      processImage(file);
+    }
+  }, []);
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processImage(file);
+    }
+  }, []);
+
+  const processImage = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setUploadedImage(e.target?.result as string);
+      setResult(null);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const analyzeImage = () => {
+    setIsAnalyzing(true);
+    // Simulate AI analysis
+    setTimeout(() => {
+      setResult({
+        disease: "Leaf Blight",
+        confidence: 94.5,
+        severity: "Moderate",
+        treatment: "Apply fungicide containing chlorothalonil. Remove affected leaves and ensure proper spacing between plants for air circulation."
+      });
+      setIsAnalyzing(false);
+    }, 2500);
+  };
+
+  const clearImage = () => {
+    setUploadedImage(null);
+    setResult(null);
+  };
+
+  return (
+    <section className="py-24 bg-gradient-subtle">
+      <div className="container mx-auto px-4">
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+            Scan Your Crop Now
+          </h2>
+          <p className="text-lg text-muted-foreground">
+            Upload an image of your crop leaf to detect diseases instantly.
+          </p>
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Upload Area */}
+            <div className="space-y-4">
+              {!uploadedImage ? (
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${
+                    isDragging
+                      ? "border-primary bg-primary/5 scale-[1.02]"
+                      : "border-border hover:border-primary/50 hover:bg-accent/50"
+                  }`}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-hero flex items-center justify-center mx-auto mb-4">
+                    <Upload className="w-8 h-8 text-primary-foreground" />
+                  </div>
+                  <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+                    Drop your image here
+                  </h3>
+                  <p className="text-muted-foreground text-sm">
+                    or click to browse from your device
+                  </p>
+                  <p className="text-muted-foreground text-xs mt-2">
+                    Supports JPG, PNG, WEBP up to 10MB
+                  </p>
+                </div>
+              ) : (
+                <div className="relative rounded-2xl overflow-hidden bg-card border border-border">
+                  <img
+                    src={uploadedImage}
+                    alt="Uploaded crop"
+                    className="w-full h-64 object-cover"
+                  />
+                  <button
+                    onClick={clearImage}
+                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  {!result && (
+                    <div className="p-4">
+                      <Button
+                        variant="hero"
+                        className="w-full"
+                        onClick={analyzeImage}
+                        disabled={isAnalyzing}
+                      >
+                        {isAnalyzing ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <Image className="w-4 h-4" />
+                            Analyze Image
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Results Area */}
+            <div className="bg-card rounded-2xl border border-border p-6">
+              <h3 className="font-display text-lg font-semibold text-foreground mb-4">
+                Analysis Results
+              </h3>
+              
+              {!uploadedImage ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Image className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Upload an image to see the analysis results</p>
+                </div>
+              ) : isAnalyzing ? (
+                <div className="text-center py-12">
+                  <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-primary" />
+                  <p className="text-muted-foreground">Analyzing your crop image...</p>
+                </div>
+              ) : result ? (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-4 rounded-xl bg-warning/10 border border-warning/20">
+                    <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-semibold text-foreground">{result.disease}</div>
+                      <div className="text-sm text-muted-foreground">Disease Detected</div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl bg-accent/50">
+                      <div className="text-sm text-muted-foreground">Confidence</div>
+                      <div className="font-display text-2xl font-bold text-primary">{result.confidence}%</div>
+                    </div>
+                    <div className="p-4 rounded-xl bg-accent/50">
+                      <div className="text-sm text-muted-foreground">Severity</div>
+                      <div className="font-display text-2xl font-bold text-warning">{result.severity}</div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-success/10 border border-success/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className="w-5 h-5 text-success" />
+                      <span className="font-semibold text-foreground">Recommended Treatment</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{result.treatment}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Image className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Click "Analyze Image" to detect diseases</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default UploadSection;
