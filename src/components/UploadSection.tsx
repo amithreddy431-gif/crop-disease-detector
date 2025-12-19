@@ -1,17 +1,24 @@
 import { useState, useCallback } from "react";
-import { Upload, Image, X, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Upload, Image, X, Loader2, AlertTriangle, CheckCircle2, Shield } from "lucide-react";
 import { Button } from "./ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface AnalysisResult {
+  disease: string;
+  confidence: number;
+  severity: string;
+  symptoms: string;
+  treatment: string;
+  prevention: string;
+}
 
 const UploadSection = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [result, setResult] = useState<{
-    disease: string;
-    confidence: number;
-    severity: string;
-    treatment: string;
-  } | null>(null);
+  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const { toast } = useToast();
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -48,18 +55,48 @@ const UploadSection = () => {
     reader.readAsDataURL(file);
   };
 
-  const analyzeImage = () => {
+  const analyzeImage = async () => {
+    if (!uploadedImage) return;
+    
     setIsAnalyzing(true);
-    // Simulate AI analysis
-    setTimeout(() => {
-      setResult({
-        disease: "Leaf Blight",
-        confidence: 94.5,
-        severity: "Moderate",
-        treatment: "Apply fungicide containing chlorothalonil. Remove affected leaves and ensure proper spacing between plants for air circulation."
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-crop', {
+        body: { imageBase64: uploadedImage }
       });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setResult(data);
+      
+      if (data.disease === "Healthy") {
+        toast({
+          title: "Good news!",
+          description: "Your crop appears to be healthy.",
+        });
+      } else if (data.disease !== "Not a crop image" && data.disease !== "Error") {
+        toast({
+          title: "Disease Detected",
+          description: `${data.disease} has been identified in your crop.`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast({
+        title: "Analysis Failed",
+        description: error instanceof Error ? error.message : "Failed to analyze image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsAnalyzing(false);
-    }, 2500);
+    }
   };
 
   const clearImage = () => {
@@ -67,15 +104,25 @@ const UploadSection = () => {
     setResult(null);
   };
 
+  const getSeverityColor = (severity: string) => {
+    switch (severity?.toLowerCase()) {
+      case 'low': return 'text-success';
+      case 'moderate': return 'text-warning';
+      case 'high': return 'text-destructive';
+      case 'critical': return 'text-destructive';
+      default: return 'text-muted-foreground';
+    }
+  };
+
   return (
-    <section className="py-24 bg-gradient-subtle">
+    <section id="scan" className="py-24 bg-gradient-subtle">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
             Scan Your Crop Now
           </h2>
           <p className="text-lg text-muted-foreground">
-            Upload an image of your crop leaf to detect diseases instantly.
+            Upload an image of your crop leaf to detect diseases instantly using AI.
           </p>
         </div>
 
@@ -137,7 +184,7 @@ const UploadSection = () => {
                         {isAnalyzing ? (
                           <>
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            Analyzing...
+                            Analyzing with AI...
                           </>
                         ) : (
                           <>
@@ -166,18 +213,31 @@ const UploadSection = () => {
               ) : isAnalyzing ? (
                 <div className="text-center py-12">
                   <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-primary" />
-                  <p className="text-muted-foreground">Analyzing your crop image...</p>
+                  <p className="text-muted-foreground">AI is analyzing your crop image...</p>
+                  <p className="text-xs text-muted-foreground mt-2">This may take a few seconds</p>
                 </div>
               ) : result ? (
                 <div className="space-y-4">
-                  <div className="flex items-start gap-3 p-4 rounded-xl bg-warning/10 border border-warning/20">
-                    <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+                  {/* Disease Detection */}
+                  <div className={`flex items-start gap-3 p-4 rounded-xl ${
+                    result.disease === "Healthy" 
+                      ? "bg-success/10 border border-success/20" 
+                      : "bg-warning/10 border border-warning/20"
+                  }`}>
+                    {result.disease === "Healthy" ? (
+                      <CheckCircle2 className="w-5 h-5 text-success shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+                    )}
                     <div>
                       <div className="font-semibold text-foreground">{result.disease}</div>
-                      <div className="text-sm text-muted-foreground">Disease Detected</div>
+                      <div className="text-sm text-muted-foreground">
+                        {result.disease === "Healthy" ? "No disease detected" : "Disease Detected"}
+                      </div>
                     </div>
                   </div>
 
+                  {/* Stats */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 rounded-xl bg-accent/50">
                       <div className="text-sm text-muted-foreground">Confidence</div>
@@ -185,10 +245,24 @@ const UploadSection = () => {
                     </div>
                     <div className="p-4 rounded-xl bg-accent/50">
                       <div className="text-sm text-muted-foreground">Severity</div>
-                      <div className="font-display text-2xl font-bold text-warning">{result.severity}</div>
+                      <div className={`font-display text-2xl font-bold ${getSeverityColor(result.severity)}`}>
+                        {result.severity}
+                      </div>
                     </div>
                   </div>
 
+                  {/* Symptoms */}
+                  {result.symptoms && result.symptoms !== "N/A" && (
+                    <div className="p-4 rounded-xl bg-accent/30 border border-border">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle className="w-4 h-4 text-warning" />
+                        <span className="font-semibold text-foreground text-sm">Symptoms Observed</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{result.symptoms}</p>
+                    </div>
+                  )}
+
+                  {/* Treatment */}
                   <div className="p-4 rounded-xl bg-success/10 border border-success/20">
                     <div className="flex items-center gap-2 mb-2">
                       <CheckCircle2 className="w-5 h-5 text-success" />
@@ -196,6 +270,26 @@ const UploadSection = () => {
                     </div>
                     <p className="text-sm text-muted-foreground">{result.treatment}</p>
                   </div>
+
+                  {/* Prevention */}
+                  {result.prevention && result.prevention !== "N/A" && (
+                    <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Shield className="w-5 h-5 text-primary" />
+                        <span className="font-semibold text-foreground">Prevention Tips</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{result.prevention}</p>
+                    </div>
+                  )}
+
+                  {/* Scan Again Button */}
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4"
+                    onClick={clearImage}
+                  >
+                    Scan Another Image
+                  </Button>
                 </div>
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
