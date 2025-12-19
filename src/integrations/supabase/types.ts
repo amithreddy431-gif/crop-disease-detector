@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      diseases: {
+        Row: {
+          created_at: string
+          crop_type: string
+          id: string
+          image_url: string | null
+          name: string
+          prevention: string | null
+          severity: string | null
+          symptoms: string
+          treatment: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          crop_type: string
+          id?: string
+          image_url?: string | null
+          name: string
+          prevention?: string | null
+          severity?: string | null
+          symptoms: string
+          treatment: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          crop_type?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          prevention?: string | null
+          severity?: string | null
+          symptoms?: string
+          treatment?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
