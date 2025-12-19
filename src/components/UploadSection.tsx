@@ -3,6 +3,7 @@ import { Upload, Image, X, Loader2, AlertTriangle, CheckCircle2, Shield } from "
 import { Button } from "./ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AnalysisResult {
   disease: string;
@@ -19,6 +20,7 @@ const UploadSection = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -82,7 +84,7 @@ const UploadSection = () => {
         });
       } else if (data.disease !== "Not a crop image" && data.disease !== "Error") {
         toast({
-          title: "Disease Detected",
+          title: t('upload.diseaseDetected'),
           description: `${data.disease} has been identified in your crop.`,
           variant: "destructive",
         });
@@ -119,10 +121,10 @@ const UploadSection = () => {
       <div className="container mx-auto px-4">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Scan Your Crop Now
+            {t('upload.title')}
           </h2>
           <p className="text-lg text-muted-foreground">
-            Upload an image of your crop leaf to detect diseases instantly using AI.
+            {t('upload.subtitle')}
           </p>
         </div>
 
@@ -151,13 +153,13 @@ const UploadSection = () => {
                     <Upload className="w-8 h-8 text-primary-foreground" />
                   </div>
                   <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                    Drop your image here
+                    {t('upload.dropHere')}
                   </h3>
                   <p className="text-muted-foreground text-sm">
-                    or click to browse from your device
+                    {t('upload.orClick')}
                   </p>
                   <p className="text-muted-foreground text-xs mt-2">
-                    Supports JPG, PNG, WEBP up to 10MB
+                    {t('upload.supports')}
                   </p>
                 </div>
               ) : (
@@ -184,12 +186,12 @@ const UploadSection = () => {
                         {isAnalyzing ? (
                           <>
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            Analyzing with AI...
+                            {t('upload.analyzing')}
                           </>
                         ) : (
                           <>
                             <Image className="w-4 h-4" />
-                            Analyze Image
+                            {t('upload.analyze')}
                           </>
                         )}
                       </Button>
@@ -202,19 +204,19 @@ const UploadSection = () => {
             {/* Results Area */}
             <div className="bg-card rounded-2xl border border-border p-6">
               <h3 className="font-display text-lg font-semibold text-foreground mb-4">
-                Analysis Results
+                {t('upload.results')}
               </h3>
               
               {!uploadedImage ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <Image className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Upload an image to see the analysis results</p>
+                  <p>{t('upload.uploadPrompt')}</p>
                 </div>
               ) : isAnalyzing ? (
                 <div className="text-center py-12">
                   <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-primary" />
-                  <p className="text-muted-foreground">AI is analyzing your crop image...</p>
-                  <p className="text-xs text-muted-foreground mt-2">This may take a few seconds</p>
+                  <p className="text-muted-foreground">{t('upload.aiAnalyzing')}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{t('upload.wait')}</p>
                 </div>
               ) : result ? (
                 <div className="space-y-4">
@@ -232,7 +234,7 @@ const UploadSection = () => {
                     <div>
                       <div className="font-semibold text-foreground">{result.disease}</div>
                       <div className="text-sm text-muted-foreground">
-                        {result.disease === "Healthy" ? "No disease detected" : "Disease Detected"}
+                        {result.disease === "Healthy" ? t('upload.noDisease') : t('upload.diseaseDetected')}
                       </div>
                     </div>
                   </div>
@@ -240,11 +242,11 @@ const UploadSection = () => {
                   {/* Stats */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 rounded-xl bg-accent/50">
-                      <div className="text-sm text-muted-foreground">Confidence</div>
+                      <div className="text-sm text-muted-foreground">{t('upload.confidence')}</div>
                       <div className="font-display text-2xl font-bold text-primary">{result.confidence}%</div>
                     </div>
                     <div className="p-4 rounded-xl bg-accent/50">
-                      <div className="text-sm text-muted-foreground">Severity</div>
+                      <div className="text-sm text-muted-foreground">{t('upload.severity')}</div>
                       <div className={`font-display text-2xl font-bold ${getSeverityColor(result.severity)}`}>
                         {result.severity}
                       </div>
@@ -256,7 +258,7 @@ const UploadSection = () => {
                     <div className="p-4 rounded-xl bg-accent/30 border border-border">
                       <div className="flex items-center gap-2 mb-2">
                         <AlertTriangle className="w-4 h-4 text-warning" />
-                        <span className="font-semibold text-foreground text-sm">Symptoms Observed</span>
+                        <span className="font-semibold text-foreground text-sm">{t('upload.symptoms')}</span>
                       </div>
                       <p className="text-sm text-muted-foreground">{result.symptoms}</p>
                     </div>
@@ -266,7 +268,7 @@ const UploadSection = () => {
                   <div className="p-4 rounded-xl bg-success/10 border border-success/20">
                     <div className="flex items-center gap-2 mb-2">
                       <CheckCircle2 className="w-5 h-5 text-success" />
-                      <span className="font-semibold text-foreground">Recommended Treatment</span>
+                      <span className="font-semibold text-foreground">{t('upload.treatment')}</span>
                     </div>
                     <p className="text-sm text-muted-foreground">{result.treatment}</p>
                   </div>
@@ -276,7 +278,7 @@ const UploadSection = () => {
                     <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
                       <div className="flex items-center gap-2 mb-2">
                         <Shield className="w-5 h-5 text-primary" />
-                        <span className="font-semibold text-foreground">Prevention Tips</span>
+                        <span className="font-semibold text-foreground">{t('upload.prevention')}</span>
                       </div>
                       <p className="text-sm text-muted-foreground">{result.prevention}</p>
                     </div>
@@ -288,13 +290,13 @@ const UploadSection = () => {
                     className="w-full mt-4"
                     onClick={clearImage}
                   >
-                    Scan Another Image
+                    {t('upload.scanAnother')}
                   </Button>
                 </div>
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   <Image className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Click "Analyze Image" to detect diseases</p>
+                  <p>{t('upload.analyzePrompt')}</p>
                 </div>
               )}
             </div>
