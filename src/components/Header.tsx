@@ -1,9 +1,12 @@
 import { Leaf, Menu, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
+import { ThemeLanguageToggle } from "./ThemeLanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -16,43 +19,47 @@ const Header = () => {
             <span className="font-display font-bold text-xl text-foreground">CropGuard</span>
           </a>
 
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
-              Features
+              {t('nav.features')}
             </a>
             <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
-              How it Works
+              {t('nav.howItWorks')}
             </a>
             <a href="#diseases" className="text-muted-foreground hover:text-foreground transition-colors">
-              Diseases
+              {t('nav.diseases')}
             </a>
-            <Button variant="hero" size="sm">
-              Get Started
+            <ThemeLanguageToggle />
+            <Button variant="hero" size="sm" asChild>
+              <a href="#scan">{t('nav.scanNow')}</a>
             </Button>
           </nav>
 
-          <button
-            className="md:hidden p-2"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <div className="md:hidden flex items-center gap-2">
+            <ThemeLanguageToggle />
+            <button
+              className="p-2"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-border">
             <nav className="flex flex-col gap-4">
               <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
-                Features
+                {t('nav.features')}
               </a>
               <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
-                How it Works
+                {t('nav.howItWorks')}
               </a>
               <a href="#diseases" className="text-muted-foreground hover:text-foreground transition-colors">
-                Diseases
+                {t('nav.diseases')}
               </a>
-              <Button variant="hero" size="sm">
-                Get Started
+              <Button variant="hero" size="sm" asChild>
+                <a href="#scan">{t('nav.scanNow')}</a>
               </Button>
             </nav>
           </div>

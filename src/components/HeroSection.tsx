@@ -1,8 +1,11 @@
 import { ArrowRight, Upload, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import heroImage from "@/assets/hero-crops.jpg";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const HeroSection = () => {
+  const { t } = useLanguage();
+
   return (
     <section className="relative min-h-screen flex items-center pt-16 overflow-hidden">
       {/* Background Image */}
@@ -20,27 +23,28 @@ const HeroSection = () => {
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/80 backdrop-blur-sm text-accent-foreground text-sm font-medium mb-6 animate-fade-in">
             <Sparkles className="w-4 h-4" />
-            AI-Powered Plant Disease Detection
+            {t('hero.titleHighlight')} Disease Detection
           </div>
 
           <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-            Protect Your Crops with
-            <span className="text-gradient block">Intelligent Detection</span>
+            {t('hero.title')}
+            <span className="text-gradient block">{t('hero.titleHighlight')} {t('hero.titleEnd')}</span>
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground mb-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            Upload a photo of your crop and let our advanced AI identify diseases instantly. 
-            Get accurate diagnoses and treatment recommendations in seconds.
+            {t('hero.subtitle')}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-            <Button variant="hero" size="xl" className="group">
-              <Upload className="w-5 h-5" />
-              Scan Your Crop
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <Button variant="hero" size="xl" className="group" asChild>
+              <a href="#scan">
+                <Upload className="w-5 h-5" />
+                {t('hero.scanButton')}
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </a>
             </Button>
-            <Button variant="heroOutline" size="xl">
-              Learn More
+            <Button variant="heroOutline" size="xl" asChild>
+              <a href="#features">{t('hero.learnMore')}</a>
             </Button>
           </div>
 

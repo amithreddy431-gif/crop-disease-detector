@@ -1,6 +1,9 @@
 import { Leaf, Mail, Phone, MapPin } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Footer = () => {
+  const { t } = useLanguage();
+
   return (
     <footer className="bg-foreground text-background py-16">
       <div className="container mx-auto px-4">
@@ -13,8 +16,7 @@ const Footer = () => {
               <span className="font-display font-bold text-xl">CropGuard</span>
             </a>
             <p className="text-background/70 mb-6 max-w-md">
-              Empowering farmers with AI-powered crop disease detection. 
-              Protect your harvest with cutting-edge technology.
+              {t('footer.description')}
             </p>
             <div className="flex items-center gap-4">
               <a href="#" className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-background/20 transition-colors">
@@ -30,12 +32,12 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-display font-semibold mb-4">Quick Links</h4>
+            <h4 className="font-display font-semibold mb-4">{t('footer.quickLinks')}</h4>
             <nav className="flex flex-col gap-2">
-              <a href="#features" className="text-background/70 hover:text-background transition-colors">Features</a>
-              <a href="#how-it-works" className="text-background/70 hover:text-background transition-colors">How it Works</a>
-              <a href="#diseases" className="text-background/70 hover:text-background transition-colors">Diseases</a>
-              <a href="#" className="text-background/70 hover:text-background transition-colors">Contact Us</a>
+              <a href="#features" className="text-background/70 hover:text-background transition-colors">{t('nav.features')}</a>
+              <a href="#how-it-works" className="text-background/70 hover:text-background transition-colors">{t('nav.howItWorks')}</a>
+              <a href="#diseases" className="text-background/70 hover:text-background transition-colors">{t('nav.diseases')}</a>
+              <a href="#" className="text-background/70 hover:text-background transition-colors">{t('footer.contact')}</a>
             </nav>
           </div>
 
@@ -51,7 +53,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-background/20 mt-12 pt-8 text-center text-background/50 text-sm">
-          © {new Date().getFullYear()} CropGuard. All rights reserved.
+          © {new Date().getFullYear()} CropGuard. {t('footer.rights')}
         </div>
       </div>
     </footer>

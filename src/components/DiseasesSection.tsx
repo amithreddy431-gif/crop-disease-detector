@@ -1,4 +1,5 @@
 import { AlertTriangle, Info } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const diseases = [
   {
@@ -46,15 +47,17 @@ const diseases = [
 ];
 
 const DiseasesSection = () => {
+  const { t } = useLanguage();
+
   return (
     <section id="diseases" className="py-24 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Diseases We Detect
+            {t('diseases.title')}
           </h2>
           <p className="text-lg text-muted-foreground">
-            Our AI can identify over 50 different crop diseases. Here are some common ones.
+            {t('diseases.subtitle')}
           </p>
         </div>
 
