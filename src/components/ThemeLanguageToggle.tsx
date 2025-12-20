@@ -19,17 +19,21 @@ export function ThemeLanguageToggle() {
   const { setTheme, theme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
 
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
   return (
     <div className="flex items-center gap-2">
       {/* Language Selector */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon" className="relative">
+          <Button variant="ghost" size="icon" className="relative glass hover:bg-accent/50">
             <Globe className="h-4 w-4" />
             <span className="sr-only">{t('language')}</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="bg-popover border border-border z-50">
+        <DropdownMenuContent align="end" className="glass border-border z-50">
           {languages.map((lang) => (
             <DropdownMenuItem
               key={lang.code}
@@ -43,26 +47,17 @@ export function ThemeLanguageToggle() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Theme Toggle */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon">
-            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="bg-popover border border-border z-50">
-          <DropdownMenuItem onClick={() => setTheme("light")}>
-            <Sun className="mr-2 h-4 w-4" />
-            {t('theme.light')}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("dark")}>
-            <Moon className="mr-2 h-4 w-4" />
-            {t('theme.dark')}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {/* Theme Toggle Button */}
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={toggleTheme}
+        className="relative glass hover:bg-accent/50 overflow-hidden"
+      >
+        <Sun className="h-4 w-4 rotate-0 scale-100 transition-all duration-300 dark:-rotate-90 dark:scale-0" />
+        <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all duration-300 dark:rotate-0 dark:scale-100" />
+        <span className="sr-only">Toggle theme</span>
+      </Button>
     </div>
   );
 }

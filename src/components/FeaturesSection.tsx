@@ -38,8 +38,12 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <section id="features" className="py-24 bg-gradient-subtle">
-      <div className="container mx-auto px-4">
+    <section id="features" className="py-24 bg-background relative overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+      
+      <div className="container mx-auto px-4 relative z-10">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
             {t('features.title')}
@@ -53,7 +57,7 @@ const FeaturesSection = () => {
           {features.map((feature, index) => (
             <div
               key={feature.titleKey}
-              className="group p-6 rounded-2xl bg-card shadow-card hover:shadow-glow transition-all duration-300 border border-border/50"
+              className="group p-6 rounded-2xl glass shadow-card hover:shadow-glow transition-all duration-300 border border-border/50"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="w-12 h-12 rounded-xl bg-gradient-hero flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
