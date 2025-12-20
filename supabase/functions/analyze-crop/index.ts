@@ -12,31 +12,48 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64 } = await req.json();
+    const body = await req.json();
+    const { imageBase64, manualQuery, cropName, diseaseName } = body;
     
-    if (!imageBase64) {
-      throw new Error('No image provided');
-    }
-
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log('Analyzing crop image with Lovable AI...');
+    let messages;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an expert agricultural pathologist specializing in crop disease identification. Analyze the provided image of a crop/plant and identify any diseases present.
+    if (manualQuery && cropName && diseaseName) {
+      // Manual query mode - get disease info based on crop and disease name
+      console.log(`Getting info for ${diseaseName} on ${cropName}...`);
+      messages = [
+        {
+          role: 'system',
+          content: `You are an expert agricultural pathologist. Provide detailed information about crop diseases based on the crop type and disease name provided.
+
+You MUST respond with a valid JSON object in this exact format:
+{
+  "disease": "Full name of the disease",
+  "confidence": 95,
+  "severity": "Low/Moderate/High/Critical based on typical severity",
+  "symptoms": "Detailed description of typical symptoms for this disease on this crop",
+  "treatment": "Specific treatment recommendations including fungicides, pesticides, or organic solutions",
+  "prevention": "Preventive measures to avoid this disease"
+}
+
+Be specific and accurate based on established agricultural science.`
+        },
+        {
+          role: 'user',
+          content: `Please provide detailed information about "${diseaseName}" disease on "${cropName}" crop.`
+        }
+      ];
+    } else if (imageBase64) {
+      // Image analysis mode
+      console.log('Analyzing crop image with Lovable AI...');
+      messages = [
+        {
+          role: 'system',
+          content: `You are an expert agricultural pathologist specializing in crop disease identification. Analyze the provided image of a crop/plant and identify any diseases present.
 
 You MUST respond with a valid JSON object in this exact format:
 {
@@ -49,23 +66,36 @@ You MUST respond with a valid JSON object in this exact format:
 }
 
 Be specific and accurate. If the image doesn't show a crop or plant, indicate that in the disease field as "Not a crop image". The confidence should be a number between 0-100.`
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: 'Please analyze this crop image for any diseases and provide detailed findings.'
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: imageBase64
-                }
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: 'Please analyze this crop image for any diseases and provide detailed findings.'
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: imageBase64
               }
-            ]
-          }
-        ],
+            }
+          ]
+        }
+      ];
+    } else {
+      throw new Error('No image or query provided');
+    }
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages,
       }),
     });
 
