@@ -1,12 +1,11 @@
-import { useState, useCallback } from "react";
-import { Upload, Camera, PenLine, X, Loader2, AlertTriangle, CheckCircle2, Shield, Image } from "lucide-react";
+import { useState, useCallback, useRef } from "react";
+import { Upload, Camera, PenLine, X, Loader2, AlertTriangle, CheckCircle2, Shield, Image, Volume2, VolumeX, Square } from "lucide-react";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-
 interface AnalysisResult {
   disease: string;
   confidence: number;
@@ -29,8 +28,11 @@ const ScanModal = ({ open, onOpenChange }: ScanModalProps) => {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [cropName, setCropName] = useState('');
   const [diseaseName, setDiseaseName] = useState('');
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -162,6 +164,105 @@ const ScanModal = ({ open, onOpenChange }: ScanModalProps) => {
     setResult(null);
     setCropName('');
     setDiseaseName('');
+    stopSpeaking();
+  };
+
+  const generateSpeechText = (result: AnalysisResult): string => {
+    const langPrefix = language === 'hi' ? 'Hindi:' : language === 'te' ? 'Telugu:' : '';
+    const parts = [];
+    
+    if (result.disease === "Healthy") {
+      parts.push(`${langPrefix} Good news! Your crop appears to be healthy. No disease was detected.`);
+    } else {
+      parts.push(`${langPrefix} Disease detected: ${result.disease}.`);
+      parts.push(`Confidence level: ${result.confidence} percent.`);
+      parts.push(`Severity: ${result.severity}.`);
+      
+      if (result.symptoms && result.symptoms !== "N/A") {
+        parts.push(`Symptoms: ${result.symptoms}.`);
+      }
+      
+      parts.push(`Treatment: ${result.treatment}.`);
+      
+      if (result.prevention && result.prevention !== "N/A") {
+        parts.push(`Prevention: ${result.prevention}.`);
+      }
+    }
+    
+    return parts.join(' ');
+  };
+
+  const speakResult = async () => {
+    if (!result) return;
+    
+    setIsLoadingAudio(true);
+    
+    try {
+      const text = generateSpeechText(result);
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/text-to-speech`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ text }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to generate speech');
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      if (audioRef.current) {
+        audioRef.current.pause();
+        URL.revokeObjectURL(audioRef.current.src);
+      }
+      
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      
+      audio.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+      
+      audio.onerror = () => {
+        setIsSpeaking(false);
+        toast({
+          title: "Audio Error",
+          description: "Failed to play audio.",
+          variant: "destructive",
+        });
+      };
+      
+      await audio.play();
+      setIsSpeaking(true);
+      
+    } catch (error) {
+      console.error('TTS error:', error);
+      toast({
+        title: "Voice Error",
+        description: error instanceof Error ? error.message : "Failed to generate voice.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingAudio(false);
+    }
+  };
+
+  const stopSpeaking = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsSpeaking(false);
+    }
   };
 
   const getSeverityColor = (severity: string) => {
@@ -434,14 +535,39 @@ const ScanModal = ({ open, onOpenChange }: ScanModalProps) => {
                   </div>
                 )}
 
-                {/* Scan Again Button */}
-                <Button
-                  variant="outline"
-                  className="w-full mt-2"
-                  onClick={clearAll}
-                >
-                  {t('upload.scanAnother')}
-                </Button>
+                {/* Action Buttons */}
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    variant={isSpeaking ? "destructive" : "default"}
+                    className="flex-1"
+                    onClick={isSpeaking ? stopSpeaking : speakResult}
+                    disabled={isLoadingAudio}
+                  >
+                    {isLoadingAudio ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Loading...
+                      </>
+                    ) : isSpeaking ? (
+                      <>
+                        <Square className="w-4 h-4" />
+                        Stop
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 className="w-4 h-4" />
+                        Read Aloud
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={clearAll}
+                  >
+                    {t('upload.scanAnother')}
+                  </Button>
+                </div>
               </div>
             ) : activeTab === 'manual' ? (
               <div className="text-center py-12 text-muted-foreground">
