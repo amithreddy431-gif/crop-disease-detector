@@ -426,8 +426,10 @@ const ScanModal = ({ open, onOpenChange }: ScanModalProps) => {
                 >
                   <X className="w-4 h-4" />
                 </button>
-                {!result && (
-                  <div className="p-4">
+                
+                {/* Action Buttons Below Image */}
+                <div className="p-4 space-y-3">
+                  {!result ? (
                     <Button
                       variant="hero"
                       className="w-full"
@@ -446,8 +448,59 @@ const ScanModal = ({ open, onOpenChange }: ScanModalProps) => {
                         </>
                       )}
                     </Button>
-                  </div>
-                )}
+                  ) : (
+                    <>
+                      {/* Voice Button - Prominent */}
+                      <Button
+                        variant={isSpeaking ? "destructive" : "hero"}
+                        className="w-full h-14 text-lg"
+                        onClick={isSpeaking ? stopSpeaking : speakResult}
+                        disabled={isLoadingAudio}
+                      >
+                        {isLoadingAudio ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Generating Voice...
+                          </>
+                        ) : isSpeaking ? (
+                          <>
+                            <Square className="w-5 h-5" />
+                            Stop Reading
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="w-5 h-5" />
+                            🔊 Read Aloud
+                          </>
+                        )}
+                      </Button>
+                      
+                      {/* Quick Tips Section */}
+                      <div className="p-4 rounded-xl bg-accent/30 border border-border">
+                        <h4 className="font-semibold text-foreground text-sm mb-2 flex items-center gap-2">
+                          <Shield className="w-4 h-4 text-primary" />
+                          Quick Tips
+                        </h4>
+                        <ul className="text-xs text-muted-foreground space-y-1">
+                          <li>• Take photos in good lighting</li>
+                          <li>• Focus on affected leaf areas</li>
+                          <li>• Include multiple angles if possible</li>
+                          <li>• Early detection helps treatment</li>
+                        </ul>
+                      </div>
+                      
+                      {/* Scan Another Button */}
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={clearAll}
+                      >
+                        <Camera className="w-4 h-4" />
+                        {t('upload.scanAnother')}
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -534,40 +587,6 @@ const ScanModal = ({ open, onOpenChange }: ScanModalProps) => {
                     <p className="text-sm text-muted-foreground">{result.prevention}</p>
                   </div>
                 )}
-
-                {/* Action Buttons */}
-                <div className="flex gap-2 mt-4">
-                  <Button
-                    variant={isSpeaking ? "destructive" : "default"}
-                    className="flex-1"
-                    onClick={isSpeaking ? stopSpeaking : speakResult}
-                    disabled={isLoadingAudio}
-                  >
-                    {isLoadingAudio ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Loading...
-                      </>
-                    ) : isSpeaking ? (
-                      <>
-                        <Square className="w-4 h-4" />
-                        Stop
-                      </>
-                    ) : (
-                      <>
-                        <Volume2 className="w-4 h-4" />
-                        Read Aloud
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={clearAll}
-                  >
-                    {t('upload.scanAnother')}
-                  </Button>
-                </div>
               </div>
             ) : activeTab === 'manual' ? (
               <div className="text-center py-12 text-muted-foreground">
