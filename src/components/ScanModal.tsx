@@ -546,17 +546,17 @@ const ScanModal = ({ open, onOpenChange }: ScanModalProps) => {
                     {isLoadingAudio ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Loading...
+                        {t('upload.reading')}
                       </>
                     ) : isSpeaking ? (
                       <>
                         <Square className="w-4 h-4" />
-                        Stop
+                        {t('upload.stopReading')}
                       </>
                     ) : (
                       <>
                         <Volume2 className="w-4 h-4" />
-                        Read Aloud
+                        {t('upload.readAloud')}
                       </>
                     )}
                   </Button>
