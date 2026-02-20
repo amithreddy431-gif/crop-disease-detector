@@ -62,6 +62,9 @@ const translations: Record<Language, Record<string, string>> = {
     'upload.treatment': 'Recommended Treatment',
     'upload.prevention': 'Prevention Tips',
     'upload.scanAnother': 'Scan Another Image',
+    'upload.readAloud': 'Read Aloud',
+    'upload.reading': 'Reading...',
+    'upload.stopReading': 'Stop Reading',
     
     // Diseases Section
     'diseases.title': 'Common Crop Diseases',
@@ -144,6 +147,9 @@ const translations: Record<Language, Record<string, string>> = {
     'upload.treatment': 'अनुशंसित उपचार',
     'upload.prevention': 'रोकथाम के सुझाव',
     'upload.scanAnother': 'एक और तस्वीर स्कैन करें',
+    'upload.readAloud': 'जोर से पढ़ें',
+    'upload.reading': 'पढ़ रहा है...',
+    'upload.stopReading': 'पढ़ना बंद करें',
     
     // Diseases Section
     'diseases.title': 'सामान्य फसल रोग',
@@ -226,6 +232,9 @@ const translations: Record<Language, Record<string, string>> = {
     'upload.treatment': 'సిఫార్సు చేసిన చికిత్స',
     'upload.prevention': 'నివారణ చిట్కాలు',
     'upload.scanAnother': 'మరొక చిత్రాన్ని స్కాన్ చేయండి',
+    'upload.readAloud': 'బిగ్గరగా చదవండి',
+    'upload.reading': 'చదువుతోంది...',
+    'upload.stopReading': 'చదవడం ఆపండి',
     
     // Diseases Section
     'diseases.title': 'సాధారణ పంట వ్యాధులు',
