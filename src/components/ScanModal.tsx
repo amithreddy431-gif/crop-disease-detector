@@ -90,7 +90,7 @@ const ScanModal = ({ open, onOpenChange }: ScanModalProps) => {
     
     try {
       const { data, error } = await supabase.functions.invoke('analyze-crop', {
-        body: { imageBase64: uploadedImage }
+        body: { imageBase64: uploadedImage, language }
       });
 
       if (error) throw error;
@@ -139,7 +139,8 @@ const ScanModal = ({ open, onOpenChange }: ScanModalProps) => {
         body: { 
           manualQuery: true,
           cropName,
-          diseaseName
+          diseaseName,
+          language
         }
       });
 
@@ -168,25 +169,24 @@ const ScanModal = ({ open, onOpenChange }: ScanModalProps) => {
   };
 
   const generateSpeechText = (result: AnalysisResult): string => {
-    const langPrefix = language === 'hi' ? 'Hindi:' : language === 'te' ? 'Telugu:' : '';
     const parts = [];
     
-    if (result.disease === "Healthy") {
-      parts.push(`${langPrefix} Good news! Your crop appears to be healthy. No disease was detected.`);
-    } else {
-      parts.push(`${langPrefix} Disease detected: ${result.disease}.`);
-      parts.push(`Confidence level: ${result.confidence} percent.`);
-      parts.push(`Severity: ${result.severity}.`);
-      
-      if (result.symptoms && result.symptoms !== "N/A") {
-        parts.push(`Symptoms: ${result.symptoms}.`);
-      }
-      
-      parts.push(`Treatment: ${result.treatment}.`);
-      
-      if (result.prevention && result.prevention !== "N/A") {
-        parts.push(`Prevention: ${result.prevention}.`);
-      }
+    // The result fields are already in the selected language from the AI.
+    // Just concatenate them naturally for speech.
+    parts.push(result.disease + '.');
+    
+    if (result.severity && result.severity !== "N/A") {
+      parts.push(result.severity + '.');
+    }
+    
+    if (result.symptoms && result.symptoms !== "N/A") {
+      parts.push(result.symptoms + '.');
+    }
+    
+    parts.push(result.treatment + '.');
+    
+    if (result.prevention && result.prevention !== "N/A") {
+      parts.push(result.prevention + '.');
     }
     
     return parts.join(' ');
