@@ -13,7 +13,14 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { imageBase64, manualQuery, cropName, diseaseName } = body;
+    const { imageBase64, manualQuery, cropName, diseaseName, language } = body;
+    
+    // Language instruction appended to system prompts
+    const langInstruction = language === 'te' 
+      ? '\n\nIMPORTANT: Respond with all text fields (disease, symptoms, treatment, prevention) written in Telugu language (తెలుగు). Only the JSON keys must remain in English.'
+      : language === 'hi'
+      ? '\n\nIMPORTANT: Respond with all text fields (disease, symptoms, treatment, prevention) written in Hindi language (हिंदी). Only the JSON keys must remain in English.'
+      : '';
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -40,7 +47,7 @@ You MUST respond with a valid JSON object in this exact format:
   "prevention": "Preventive measures to avoid this disease"
 }
 
-Be specific and accurate based on established agricultural science.`
+Be specific and accurate based on established agricultural science.${langInstruction}`
         },
         {
           role: 'user',
@@ -65,7 +72,7 @@ You MUST respond with a valid JSON object in this exact format:
   "prevention": "Preventive measures to avoid future occurrences"
 }
 
-Be specific and accurate. If the image doesn't show a crop or plant, indicate that in the disease field as "Not a crop image". The confidence should be a number between 0-100.`
+Be specific and accurate. If the image doesn't show a crop or plant, indicate that in the disease field as "Not a crop image". The confidence should be a number between 0-100.${langInstruction}`
         },
         {
           role: 'user',
