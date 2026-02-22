@@ -96,15 +96,15 @@ const ScanModal = ({ open, onOpenChange }: ScanModalProps) => {
 
       setResult(data);
       
-      if (data.disease === "Healthy") {
+      if (data.disease === "Healthy" || data.disease === "स्वस्थ" || data.disease === "ఆరోగ్యకరం") {
         toast({
-          title: "Good news!",
-          description: "Your crop appears to be healthy.",
+          title: t('upload.noDisease'),
+          description: t('upload.noDisease'),
         });
       } else if (data.disease !== "Not a crop image" && data.disease !== "Error") {
         toast({
           title: t('upload.diseaseDetected'),
-          description: `${data.disease} has been identified in your crop.`,
+          description: data.disease,
           variant: "destructive",
         });
       }
