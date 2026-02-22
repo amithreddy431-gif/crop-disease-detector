@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { Upload, Camera, PenLine, X, Loader2, AlertTriangle, CheckCircle2, Shield, Image, Volume2, VolumeX, Square } from "lucide-react";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
@@ -29,8 +29,6 @@ const ScanModal = ({ open, onOpenChange }: ScanModalProps) => {
   const [cropName, setCropName] = useState('');
   const [diseaseName, setDiseaseName] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
   const { t, language } = useLanguage();
 
@@ -192,77 +190,51 @@ const ScanModal = ({ open, onOpenChange }: ScanModalProps) => {
     return parts.join(' ');
   };
 
-  const speakResult = async () => {
+  const speakResult = () => {
     if (!result) return;
     
-    setIsLoadingAudio(true);
+    const text = generateSpeechText(result);
     
-    try {
-      const text = generateSpeechText(result);
-      
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/text-to-speech`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ text }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to generate speech');
-      }
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      
-      if (audioRef.current) {
-        audioRef.current.pause();
-        URL.revokeObjectURL(audioRef.current.src);
-      }
-      
-      const audio = new Audio(audioUrl);
-      audioRef.current = audio;
-      
-      audio.onended = () => {
-        setIsSpeaking(false);
-        URL.revokeObjectURL(audioUrl);
-      };
-      
-      audio.onerror = () => {
-        setIsSpeaking(false);
-        toast({
-          title: "Audio Error",
-          description: "Failed to play audio.",
-          variant: "destructive",
-        });
-      };
-      
-      await audio.play();
-      setIsSpeaking(true);
-      
-    } catch (error) {
-      console.error('TTS error:', error);
+    if (!('speechSynthesis' in window)) {
       toast({
         title: "Voice Error",
-        description: error instanceof Error ? error.message : "Failed to generate voice.",
+        description: "Your browser does not support text-to-speech.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoadingAudio(false);
+      return;
     }
+
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Set language based on current app language
+    if (language === 'te') {
+      utterance.lang = 'te-IN';
+    } else if (language === 'hi') {
+      utterance.lang = 'hi-IN';
+    } else {
+      utterance.lang = 'en-US';
+    }
+    
+    utterance.rate = 0.9;
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      toast({
+        title: "Voice Error",
+        description: "Failed to play audio.",
+        variant: "destructive",
+      });
+    };
+    
+    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(true);
   };
 
   const stopSpeaking = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsSpeaking(false);
-    }
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
   };
 
   const getSeverityColor = (severity: string) => {
@@ -541,14 +513,8 @@ const ScanModal = ({ open, onOpenChange }: ScanModalProps) => {
                     variant={isSpeaking ? "destructive" : "default"}
                     className="flex-1"
                     onClick={isSpeaking ? stopSpeaking : speakResult}
-                    disabled={isLoadingAudio}
                   >
-                    {isLoadingAudio ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        {t('upload.reading')}
-                      </>
-                    ) : isSpeaking ? (
+                    {isSpeaking ? (
                       <>
                         <Square className="w-4 h-4" />
                         {t('upload.stopReading')}
