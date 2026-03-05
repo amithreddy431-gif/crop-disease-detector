@@ -1,73 +1,151 @@
-# Welcome to your Lovable project
+# Harvest Healer AI 🌾
 
-## Project info
+AI-powered crop disease detection and treatment recommendation system supporting English, Hindi, and Telugu.
 
-**URL**: https://lovable.dev/projects/f58e5a4b-e2e2-4c2a-8449-2997e5863c97
+**Live URL:** [harvest-healer-ai.lovable.app](https://harvest-healer-ai.lovable.app)
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## Features
 
-**Use Lovable**
+- **AI Crop Disease Scanner** — Upload a photo or manually enter crop/disease name to get instant diagnosis, severity, treatment, and prevention advice
+- **Multilingual Support** — Full UI and AI responses in English, Hindi (हिंदी), and Telugu (తెలుగు)
+- **Dark / Light Theme** — Toggle between themes
+- **Disease Reference Catalog** — Browse known crop diseases from the database
+- **Text-to-Speech** — Listen to analysis results
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f58e5a4b-e2e2-4c2a-8449-2997e5863c97) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## Tech Stack
 
-**Use your preferred IDE**
+### Frontend
+| Technology | Purpose |
+|---|---|
+| React 18 | UI framework |
+| TypeScript | Type safety |
+| Vite | Build tool & dev server |
+| Tailwind CSS | Utility-first styling |
+| shadcn/ui | Component library |
+| React Router DOM | Client-side routing |
+| TanStack React Query | Server state management |
+| next-themes | Dark/light mode |
+| Lucide React | Icons |
+| Framer Motion | Animations |
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Backend (Lovable Cloud / Supabase)
+| Service | Purpose |
+|---|---|
+| PostgreSQL Database | Disease catalog storage |
+| Edge Function: `analyze-crop` | AI crop analysis via Google Gemini 2.5 Flash |
+| Edge Function: `text-to-speech` | Text-to-speech conversion |
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+---
 
-Follow these steps:
+## Database Schema
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+### `diseases` table
+| Column | Type | Description |
+|---|---|---|
+| `id` | UUID | Primary key |
+| `name` | TEXT | Disease name |
+| `crop_type` | TEXT | Associated crop |
+| `symptoms` | TEXT | Symptom description |
+| `treatment` | TEXT | Treatment recommendations |
+| `prevention` | TEXT | Preventive measures |
+| `severity` | TEXT | Low / Moderate / High / Critical |
+| `image_url` | TEXT | Reference image URL |
+| `created_at` | TIMESTAMP | Record creation time |
+| `updated_at` | TIMESTAMP | Last update time |
+
+---
+
+## Project Structure
+
+```
+├── src/
+│   ├── assets/              # Static images
+│   ├── components/          # React components
+│   │   ├── ui/              # shadcn/ui base components
+│   │   ├── Header.tsx       # Navigation header
+│   │   ├── HeroSection.tsx  # Landing hero
+│   │   ├── FeaturesSection.tsx
+│   │   ├── HowItWorksSection.tsx
+│   │   ├── UploadSection.tsx # Image upload & scan trigger
+│   │   ├── ScanModal.tsx    # AI analysis modal
+│   │   ├── DiseasesSection.tsx # Disease catalog
+│   │   ├── Footer.tsx
+│   │   └── ThemeLanguageToggle.tsx
+│   ├── contexts/
+│   │   └── LanguageContext.tsx  # i18n (EN/HI/TE)
+│   ├── integrations/
+│   │   └── supabase/        # Auto-generated client & types
+│   ├── pages/
+│   │   ├── Index.tsx        # Main landing page
+│   │   └── NotFound.tsx     # 404 page
+│   ├── App.tsx              # Root component with providers
+│   └── main.tsx             # Entry point
+├── supabase/
+│   └── functions/
+│       ├── analyze-crop/    # AI disease analysis edge function
+│       └── text-to-speech/  # TTS edge function
+├── public/                  # Static public assets
+└── package.json
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+
+- npm or bun
+
+### Installation
+
+```bash
+# Clone the repository
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Environment Variables
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+These are auto-configured when using Lovable Cloud:
 
-**Use GitHub Codespaces**
+| Variable | Description |
+|---|---|
+| `VITE_SUPABASE_URL` | Backend API URL |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Public API key |
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## Available Scripts
 
-This project is built with:
+| Command | Description |
+|---|---|
+| `npm run dev` | Start dev server |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run ESLint |
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+## Supported Languages
 
-Simply open [Lovable](https://lovable.dev/projects/f58e5a4b-e2e2-4c2a-8449-2997e5863c97) and click on Share -> Publish.
+| Code | Language |
+|---|---|
+| `en` | English |
+| `hi` | Hindi (हिंदी) |
+| `te` | Telugu (తెలుగు) |
 
-## Can I connect a custom domain to my Lovable project?
+---
 
-Yes, you can!
+## License
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+This project is private.
